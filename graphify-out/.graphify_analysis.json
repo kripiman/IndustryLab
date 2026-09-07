@@ -1,0 +1,383 @@
+{
+  "communities": {
+    "0": [
+      "helics_sim_fed_icssim",
+      "helics_sim_fed_icssim_fedicssim",
+      "helics_sim_fed_icssim_fedicssim_close",
+      "helics_sim_fed_icssim_fedicssim_init",
+      "helics_sim_fed_icssim_fedicssim_initialize",
+      "helics_sim_fed_icssim_fedicssim_step",
+      "helics_sim_fed_icssim_rationale_1",
+      "physical_bridge_modbus",
+      "physical_bridge_modbus_hilmodbusbridge",
+      "physical_bridge_modbus_hilmodbusbridge_connect",
+      "physical_bridge_modbus_hilmodbusbridge_init",
+      "physical_bridge_modbus_hilmodbusbridge_run",
+      "physical_bridge_modbus_hilmodbusbridge_step_cycle",
+      "physical_bridge_modbus_main",
+      "physical_bridge_modbus_rationale_76",
+      "physical_icssim_plant_conveyor",
+      "physical_icssim_plant_conveyor_rationale_1",
+      "physical_icssim_plant_conveyor_slurryconveyorplant",
+      "physical_icssim_plant_conveyor_slurryconveyorplant_init",
+      "physical_icssim_plant_conveyor_slurryconveyorplant_step",
+      "physical_icssim_plant_cooling",
+      "physical_icssim_plant_cooling_rationale_1",
+      "physical_icssim_plant_cooling_thermalcoolingplant",
+      "physical_icssim_plant_cooling_thermalcoolingplant_init",
+      "physical_icssim_plant_cooling_thermalcoolingplant_step",
+      "physical_icssim_plant_tank",
+      "physical_icssim_plant_tank_buffertankplant",
+      "physical_icssim_plant_tank_buffertankplant_init",
+      "physical_icssim_plant_tank_buffertankplant_step",
+      "physical_icssim_plant_tank_rationale_1",
+      "physical_tests_test_conveyor_physics",
+      "physical_tests_test_conveyor_physics_rationale_1",
+      "physical_tests_test_conveyor_physics_test_conveyor_bearing_vibration_escalation_on_lube_loss",
+      "physical_tests_test_conveyor_physics_test_conveyor_speed_and_feed_ramp",
+      "physical_tests_test_cooling_physics",
+      "physical_tests_test_cooling_physics_rationale_1",
+      "physical_tests_test_cooling_physics_test_thermal_cooling_equilibrium",
+      "physical_tests_test_cooling_physics_test_thermal_cooling_loss_of_cooling_runaway",
+      "physical_tests_test_tank_physics",
+      "physical_tests_test_tank_physics_rationale_1",
+      "physical_tests_test_tank_physics_test_tank_fill_and_drain"
+    ],
+    "1": [
+      "plc_modbus_server",
+      "plc_modbus_server_modbusplcserver",
+      "plc_modbus_server_modbusplcserver_get_coil",
+      "plc_modbus_server_modbusplcserver_get_discrete_input",
+      "plc_modbus_server_modbusplcserver_get_holding_register",
+      "plc_modbus_server_modbusplcserver_get_input_register",
+      "plc_modbus_server_modbusplcserver_init",
+      "plc_modbus_server_modbusplcserver_run_server",
+      "plc_modbus_server_modbusplcserver_set_coil",
+      "plc_modbus_server_modbusplcserver_set_discrete_input",
+      "plc_modbus_server_modbusplcserver_set_holding_register",
+      "plc_modbus_server_modbusplcserver_set_input_register",
+      "plc_modbus_server_modbusplcserver_start",
+      "plc_modbus_server_modbusplcserver_stop",
+      "plc_openplc_runtime",
+      "plc_openplc_runtime_conveyorcontrollogic",
+      "plc_openplc_runtime_conveyorcontrollogic_init",
+      "plc_openplc_runtime_conveyorcontrollogic_scan_cycle",
+      "plc_openplc_runtime_coolingcontrollogic",
+      "plc_openplc_runtime_coolingcontrollogic_init",
+      "plc_openplc_runtime_coolingcontrollogic_scan_cycle",
+      "plc_openplc_runtime_main",
+      "plc_openplc_runtime_openplcruntime",
+      "plc_openplc_runtime_openplcruntime_init",
+      "plc_openplc_runtime_openplcruntime_run",
+      "plc_openplc_runtime_rationale_28",
+      "plc_openplc_runtime_rationale_90",
+      "plc_tests_test_modbus_server",
+      "plc_tests_test_modbus_server_rationale_1",
+      "plc_tests_test_modbus_server_test_modbus_plc_server_datastore_in_memory",
+      "plc_tests_test_modbus_server_test_modbus_plc_server_network_client",
+      "plc_tests_test_openplc_runtime",
+      "plc_tests_test_openplc_runtime_rationale_1",
+      "plc_tests_test_openplc_runtime_test_conveyor_control_scan_and_interlocks",
+      "plc_tests_test_openplc_runtime_test_cooling_control_scan_proportional_and_trip"
+    ],
+    "2": [
+      "helics_sim_fed_logger",
+      "helics_sim_fed_logger_cascadingeventlogger",
+      "helics_sim_fed_logger_cascadingeventlogger_close",
+      "helics_sim_fed_logger_cascadingeventlogger_init",
+      "helics_sim_fed_logger_cascadingeventlogger_init_csv",
+      "helics_sim_fed_logger_cascadingeventlogger_log_step",
+      "helics_sim_fed_logger_rationale_1",
+      "helics_sim_fed_plc",
+      "helics_sim_fed_plc_fedplc",
+      "helics_sim_fed_plc_fedplc_close",
+      "helics_sim_fed_plc_fedplc_execute_logic",
+      "helics_sim_fed_plc_fedplc_init",
+      "helics_sim_fed_plc_fedplc_initialize",
+      "helics_sim_fed_plc_rationale_1",
+      "helics_sim_fed_power_grid",
+      "helics_sim_fed_power_grid_fedpowergrid",
+      "helics_sim_fed_power_grid_fedpowergrid_close",
+      "helics_sim_fed_power_grid_fedpowergrid_evaluate_grid_state",
+      "helics_sim_fed_power_grid_fedpowergrid_init",
+      "helics_sim_fed_power_grid_fedpowergrid_initialize",
+      "helics_sim_fed_power_grid_rationale_1",
+      "helics_sim_fed_power_grid_rationale_48",
+      "helics_sim_run_co_simulation",
+      "helics_sim_run_co_simulation_main",
+      "helics_sim_run_co_simulation_run_simulation",
+      "helics_sim_tests_test_helics_federates",
+      "helics_sim_tests_test_helics_federates_rationale_1",
+      "helics_sim_tests_test_helics_federates_test_co_simulation_end_to_end_cascade",
+      "helics_sim_tests_test_helics_federates_test_fed_plc_attack_override",
+      "helics_sim_tests_test_helics_federates_test_fed_power_grid_thermal_cascade_trip",
+      "path"
+    ],
+    "3": [
+      "scada_historian_service",
+      "scada_historian_service_historianrequesthandler",
+      "scada_historian_service_historianrequesthandler_do_get",
+      "scada_historian_service_historianrequesthandler_log_message",
+      "scada_historian_service_historianstore",
+      "scada_historian_service_historianstore_add_alarm",
+      "scada_historian_service_historianstore_get_snapshot",
+      "scada_historian_service_historianstore_init",
+      "scada_historian_service_historianstore_record_failure",
+      "scada_historian_service_historianstore_update_conveyor",
+      "scada_historian_service_historianstore_update_cooling",
+      "scada_historian_service_main",
+      "scada_historian_service_py_basehttprequesthandler",
+      "scada_historian_service_scadahistorian",
+      "scada_historian_service_scadahistorian_init",
+      "scada_historian_service_scadahistorian_poll_cycle",
+      "scada_historian_service_scadahistorian_polling_worker",
+      "scada_historian_service_scadahistorian_start",
+      "scada_historian_service_scadahistorian_stop",
+      "scada_tests_test_scada_services",
+      "scada_tests_test_scada_services_rationale_1",
+      "scada_tests_test_scada_services_test_historian_store_and_alarms",
+      "scada_tests_test_scada_services_test_scada_historian_rest_api"
+    ],
+    "4": [
+      "attacker_attack_dos",
+      "attacker_attack_dos_execute_dos",
+      "attacker_attack_dos_main",
+      "network_modbus_dpi_filter",
+      "network_modbus_dpi_filter_main",
+      "network_modbus_dpi_filter_make_modbus_exception",
+      "network_modbus_dpi_filter_modbusdpiproxy",
+      "network_modbus_dpi_filter_modbusdpiproxy_handle_client",
+      "network_modbus_dpi_filter_modbusdpiproxy_init",
+      "network_modbus_dpi_filter_modbusdpiproxy_inspect_request",
+      "network_modbus_dpi_filter_modbusdpiproxy_start",
+      "network_modbus_dpi_filter_parse_modbus_pdu",
+      "network_modbus_dpi_filter_rationale_100",
+      "network_modbus_dpi_filter_rationale_51",
+      "network_modbus_dpi_filter_rationale_77",
+      "network_tests_test_dpi_filter",
+      "network_tests_test_dpi_filter_rationale_1",
+      "network_tests_test_dpi_filter_test_dpi_proxy_authorization_logic",
+      "network_tests_test_dpi_filter_test_modbus_exception_generation",
+      "network_tests_test_dpi_filter_test_parse_modbus_pdu",
+      "socket"
+    ],
+    "5": [
+      "industrylab",
+      "industrylab_cmd_attack",
+      "industrylab_cmd_down",
+      "industrylab_cmd_phase",
+      "industrylab_cmd_profile",
+      "industrylab_cmd_smoke",
+      "industrylab_cmd_status",
+      "industrylab_cmd_test",
+      "industrylab_cmd_up",
+      "industrylab_cmd_up_local",
+      "industrylab_pythonpath",
+      "industrylab_sh__entry",
+      "industrylab_show_help",
+      "scripts_run_phase1_network",
+      "scripts_run_phase1_network_sh__entry",
+      "scripts_run_phase2_plc",
+      "scripts_run_phase2_plc_sh__entry",
+      "scripts_run_phase3_simulation",
+      "scripts_run_phase3_simulation_sh__entry",
+      "scripts_run_phase4_offensive",
+      "scripts_run_phase4_offensive_sh__entry"
+    ],
+    "6": [
+      "network_topology_mininet",
+      "network_topology_mininet_apply_firewall_rules",
+      "network_topology_mininet_linuxrouter",
+      "network_topology_mininet_linuxrouter_config",
+      "network_topology_mininet_linuxrouter_terminate",
+      "network_topology_mininet_main",
+      "network_topology_mininet_purduetopo",
+      "network_topology_mininet_purduetopo_build",
+      "network_topology_mininet_rationale_101",
+      "network_topology_mininet_rationale_25",
+      "network_topology_mininet_rationale_36",
+      "network_topology_mininet_rationale_94",
+      "network_topology_mininet_run_connectivity_tests",
+      "node",
+      "topo"
+    ],
+    "7": [
+      "attacker_attack_coil_injection",
+      "attacker_attack_coil_injection_execute_attack",
+      "attacker_attack_coil_injection_main",
+      "attacker_attack_recon",
+      "attacker_attack_recon_main",
+      "attacker_attack_recon_scan_target",
+      "attacker_attack_setpoint_tamper",
+      "attacker_attack_setpoint_tamper_execute_setpoint_tamper",
+      "attacker_attack_setpoint_tamper_main",
+      "attacker_tests_test_attack_scripts",
+      "attacker_tests_test_attack_scripts_rationale_1",
+      "attacker_tests_test_attack_scripts_test_attack_coil_injection_impact",
+      "attacker_tests_test_attack_scripts_test_attack_setpoint_tamper",
+      "attacker_tests_test_attack_scripts_test_recon_scanner_finds_registers"
+    ],
+    "8": [
+      "scada_hmi_web_server",
+      "scada_hmi_web_server_hmirequesthandler",
+      "scada_hmi_web_server_hmirequesthandler_do_get",
+      "scada_hmi_web_server_hmirequesthandler_log_message",
+      "scada_hmi_web_server_main",
+      "scada_hmi_web_server_py_basehttprequesthandler",
+      "scada_hmi_web_server_run_hmi"
+    ],
+    "9": [
+      "network_tests_test_firewall_rules",
+      "network_tests_test_firewall_rules_rationale_1",
+      "network_tests_test_firewall_rules_test_firewall_rules_dry_run_print",
+      "network_tests_test_firewall_rules_test_firewall_script_syntax_and_conduits",
+      "network_tests_test_firewall_rules_test_purdue_model_configuration_validity"
+    ],
+    "10": [
+      "attacker_attack_register_tamper",
+      "attacker_attack_register_tamper_execute_fdia",
+      "attacker_attack_register_tamper_main"
+    ],
+    "11": [
+      "conftest",
+      "conftest_rationale_1"
+    ],
+    "12": [
+      "network_firewall_rules",
+      "network_firewall_rules_sh__entry"
+    ],
+    "13": [
+      "scripts_profile_resources",
+      "scripts_profile_resources_profile"
+    ]
+  },
+  "cohesion": {
+    "0": 0.08292682926829269,
+    "1": 0.09747899159663866,
+    "2": 0.1032258064516129,
+    "3": 0.13043478260869565,
+    "4": 0.16666666666666666,
+    "5": 0.14285714285714285,
+    "6": 0.1619047619047619,
+    "7": 0.24175824175824176,
+    "8": 0.3333333333333333,
+    "9": 0.4,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0
+  },
+  "gods": [
+    {
+      "id": "plc_modbus_server_modbusplcserver",
+      "label": "ModbusPlcServer",
+      "degree": 30
+    },
+    {
+      "id": "physical_icssim_plant_conveyor_slurryconveyorplant",
+      "label": "SlurryConveyorPlant",
+      "degree": 12
+    },
+    {
+      "id": "physical_icssim_plant_cooling_thermalcoolingplant",
+      "label": "ThermalCoolingPlant",
+      "degree": 12
+    },
+    {
+      "id": "industrylab_sh__entry",
+      "label": "industrylab.sh script",
+      "degree": 10
+    },
+    {
+      "id": "helics_sim_fed_icssim_fedicssim",
+      "label": "FedICSSIM",
+      "degree": 9
+    },
+    {
+      "id": "helics_sim_fed_plc_fedplc",
+      "label": "FedPLC",
+      "degree": 9
+    },
+    {
+      "id": "helics_sim_fed_power_grid_fedpowergrid",
+      "label": "FedPowerGrid",
+      "degree": 9
+    },
+    {
+      "id": "physical_bridge_modbus_hilmodbusbridge",
+      "label": "HilModbusBridge",
+      "degree": 9
+    },
+    {
+      "id": "scada_historian_service_historianstore",
+      "label": "HistorianStore",
+      "degree": 9
+    },
+    {
+      "id": "scada_historian_service_scadahistorian",
+      "label": "ScadaHistorian",
+      "degree": 9
+    }
+  ],
+  "surprises": [
+    {
+      "source": "test_recon_scanner_finds_registers()",
+      "target": "ModbusPlcServer",
+      "source_files": [
+        "attacker/tests/test_attack_scripts.py",
+        "plc/modbus_server.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_attack_coil_injection_impact()",
+      "target": "ModbusPlcServer",
+      "source_files": [
+        "attacker/tests/test_attack_scripts.py",
+        "plc/modbus_server.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_attack_setpoint_tamper()",
+      "target": "ModbusPlcServer",
+      "source_files": [
+        "attacker/tests/test_attack_scripts.py",
+        "plc/modbus_server.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "FedICSSIM",
+      "target": "SlurryConveyorPlant",
+      "source_files": [
+        "helics_sim/fed_icssim.py",
+        "physical/icssim/plant_conveyor.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "FedICSSIM",
+      "target": "ThermalCoolingPlant",
+      "source_files": [
+        "helics_sim/fed_icssim.py",
+        "physical/icssim/plant_cooling.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

@@ -1,0 +1,190 @@
+version: '3.8'
+
+# ==============================================================================
+# IndustryLab — Containerized Cyber Range (IEC 62443 / Purdue Model)
+# ==============================================================================
+
+networks:
+  net_enterprise:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24
+          gateway: 10.10.1.254
+
+  net_dmz:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.2.0/24
+          gateway: 10.10.2.254
+
+  net_engineering:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.3.0/24
+          gateway: 10.10.3.254
+
+  net_ot_cell:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.4.0/24
+          gateway: 10.10.4.254
+
+  net_attacker:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.99.0/24
+          gateway: 10.10.99.254
+
+services:
+  # Multi-homed Firewall / Router enforcing IEC 62443 Conduits
+  router_fw:
+    image: alpine:latest
+    container_name: indlab_router_fw
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./firewall_rules.sh:/etc/firewall_rules.sh:ro
+    command: >
+      sh -c "apk add --no-cache iptables bash iproute2 &&
+             chmod +x /etc/firewall_rules.sh &&
+             /etc/firewall_rules.sh || true &&
+             tail -f /dev/null"
+    networks:
+      net_enterprise:
+        ipv4_address: 10.10.1.1
+      net_dmz:
+        ipv4_address: 10.10.2.1
+      net_engineering:
+        ipv4_address: 10.10.3.1
+      net_ot_cell:
+        ipv4_address: 10.10.4.1
+      net_attacker:
+        ipv4_address: 10.10.99.1
+
+  # Enterprise Workstation (Level 4/5)
+  corp_ws:
+    image: python:3.11-slim
+    container_name: indlab_corp_ws
+    command: tail -f /dev/null
+    networks:
+      net_enterprise:
+        ipv4_address: 10.10.1.50
+
+  # Industrial DMZ: Telemetry Historian (Level 3.5)
+  dmz_historian:
+    image: python:3.11-slim
+    container_name: indlab_dmz_historian
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir pymodbus==2.5.3 pyyaml &&
+             python3 scada/historian_service.py --host 0.0.0.0 --port 8080"
+    ports:
+      - "8080:8080"
+    networks:
+      net_dmz:
+        ipv4_address: 10.10.2.20
+
+  # Industrial DMZ: Airgapped HMI Dashboard (Level 3.5)
+  dmz_hmi:
+    image: python:3.11-slim
+    container_name: indlab_dmz_hmi
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir pyyaml &&
+             python3 scada/hmi_web_server.py --host 0.0.0.0 --port 8085"
+    ports:
+      - "8085:8085"
+    networks:
+      net_dmz:
+        ipv4_address: 10.10.2.30
+
+  # Industrial DMZ: Modbus DPI Proxy / Filter (Level 3.5)
+  dmz_dpi_proxy:
+    image: python:3.11-slim
+    container_name: indlab_dmz_dpi
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir pyyaml &&
+             python3 network/modbus_dpi_filter.py --listen-port 1502 --target-ip 10.10.4.10 --target-port 502"
+    ports:
+      - "1502:1502"
+    networks:
+      net_dmz:
+        ipv4_address: 10.10.2.40
+
+  # Engineering Workstation (Level 3)
+  ews_host:
+    image: python:3.11-slim
+    container_name: indlab_ews_host
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: tail -f /dev/null
+    networks:
+      net_engineering:
+        ipv4_address: 10.10.3.50
+
+  # OpenPLC Controller 1: Heat Exchanger & Cooling Loop (Level 1)
+  plc_cooling:
+    image: python:3.11-slim
+    container_name: indlab_plc_cooling
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir pymodbus==2.5.3 pyyaml &&
+             python3 plc/openplc_runtime.py --process cooling --port 502"
+    networks:
+      net_ot_cell:
+        ipv4_address: 10.10.4.10
+
+  # OpenPLC Controller 2: Slurry Conveyor & SAG Mill (Level 1)
+  plc_conveyor:
+    image: python:3.11-slim
+    container_name: indlab_plc_conveyor
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir pymodbus==2.5.3 pyyaml &&
+             python3 plc/openplc_runtime.py --process conveyor --port 502"
+    networks:
+      net_ot_cell:
+        ipv4_address: 10.10.4.11
+
+  # ICSSIM Physical Process & HIL Engine (Level 0)
+  icssim_physics:
+    image: python:3.11-slim
+    container_name: indlab_icssim_physics
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache-dir pymodbus==2.5.3 pyyaml helics &&
+             python3 physical/bridge_modbus.py --dt 0.2"
+    networks:
+      net_ot_cell:
+        ipv4_address: 10.10.4.20
+
+  # Red Team Attack Node (External / Penetration Testing)
+  attacker:
+    image: python:3.11-slim
+    container_name: indlab_attacker
+    volumes:
+      - ../:/app
+    working_dir: /app
+    command: tail -f /dev/null
+    networks:
+      net_attacker:
+        ipv4_address: 10.10.99.10

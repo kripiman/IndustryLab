@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs & simulation output
+logs/*.log
+logs/*.csv
+logs/*.pcap
+*.log
+
+# Docker / Mininet temporary files
+*.pid
+runfiles/*.pid
+*.sock
+
+# OS generated
+.DS_Store
+Thumbs.db

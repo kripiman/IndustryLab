@@ -1,0 +1,124 @@
+# IEC 62443 Purdue Enterprise Reference Architecture (PERA) Network Plan
+name: "IndustryLab-PERA-IEC62443"
+version: "1.0.0"
+
+zones:
+  enterprise:
+    name: "Enterprise Zone"
+    purdue_level: "Level 4 / Level 5"
+    subnet: "10.10.1.0/24"
+    gateway: "10.10.1.1"
+    firewall_iface: "eth0"
+    hosts:
+      corp_ws:
+        ip: "10.10.1.50"
+        role: "Corporate Office Workstation"
+      corp_srv:
+        ip: "10.10.1.10"
+        role: "Enterprise ERP / Web Server"
+
+  dmz:
+    name: "Industrial DMZ (IDMZ)"
+    purdue_level: "Level 3.5"
+    subnet: "10.10.2.0/24"
+    gateway: "10.10.2.1"
+    firewall_iface: "eth1"
+    hosts:
+      dmz_jump:
+        ip: "10.10.2.10"
+        role: "Bastion / SSH Jump Host"
+      dmz_historian:
+        ip: "10.10.2.20"
+        role: "Process Telemetry Historian & SCADA Collector"
+        ports: [8080, 8086]
+      dmz_hmi:
+        ip: "10.10.2.30"
+        role: "Airgapped Process HMI Web Dashboard"
+        ports: [8085]
+      dmz_dpi_proxy:
+        ip: "10.10.2.40"
+        role: "Modbus/TCP DPI Proxy & Access Control Filter"
+        ports: [1502]
+
+  engineering:
+    name: "Operations & Engineering Zone"
+    purdue_level: "Level 3"
+    subnet: "10.10.3.0/24"
+    gateway: "10.10.3.1"
+    firewall_iface: "eth2"
+    hosts:
+      ews_host:
+        ip: "10.10.3.50"
+        role: "Engineering Workstation (OpenPLC Studio / IEC 61131-3 Deployer)"
+
+  ot_cell:
+    name: "Control & Field Zone (OT Cell)"
+    purdue_level: "Level 0-2"
+    subnet: "10.10.4.0/24"
+    gateway: "10.10.4.1"
+    firewall_iface: "eth3"
+    hosts:
+      plc_cooling:
+        ip: "10.10.4.10"
+        role: "OpenPLC Controller 1 - Industrial Heat Exchanger & Cooling Loop"
+        protocols: ["Modbus/TCP:502"]
+      plc_conveyor:
+        ip: "10.10.4.11"
+        role: "OpenPLC Controller 2 - SAG Mill & Slurry Conveyor Circuit"
+        protocols: ["Modbus/TCP:502"]
+      icssim_physics:
+        ip: "10.10.4.20"
+        role: "ICSSIM Hardware-in-the-Loop (HIL) Physical Process Simulator"
+        protocols: ["Modbus/TCP:5020", "HELICS:23404"]
+
+  attacker:
+    name: "Simulated Threat / PenTesting Zone"
+    purdue_level: "External / Breached IT"
+    subnet: "10.10.99.0/24"
+    gateway: "10.10.99.1"
+    firewall_iface: "eth4"
+    hosts:
+      attacker_host:
+        ip: "10.10.99.10"
+        role: "Red Team Industrial Penetration Testing Station"
+
+conduits:
+  - id: "C-01"
+    name: "IT to IDMZ Management"
+    from_zone: "enterprise"
+    to_zone: "dmz"
+    allowed_ports: ["tcp/22", "tcp/443", "tcp/8085"]
+    policy: "ACCEPT"
+    purpose: "Corporate operators accessing HMI / jump host"
+
+  - id: "C-02"
+    name: "Strict Drop IT to OT"
+    from_zone: "enterprise"
+    to_zone: "ot_cell"
+    policy: "DROP"
+    purpose: "IEC 62443 strict isolation: zero direct routing from IT to OT"
+
+  - id: "C-03"
+    name: "IDMZ SCADA Polling to OT"
+    from_zone: "dmz"
+    to_zone: "ot_cell"
+    allowed_ports: ["tcp/502", "tcp/5020"]
+    sources: ["10.10.2.20", "10.10.2.40"]
+    policy: "ACCEPT"
+    purpose: "Historian and DPI proxy telemetry collection"
+
+  - id: "C-04"
+    name: "EWS to OT Programming"
+    from_zone: "engineering"
+    to_zone: "ot_cell"
+    allowed_ports: ["tcp/502", "tcp/8080"]
+    sources: ["10.10.3.50"]
+    policy: "ACCEPT"
+    purpose: "Authorized engineering logic upload & register calibration"
+
+  - id: "C-05"
+    name: "Attacker Isolation"
+    from_zone: "attacker"
+    to_zone: "ot_cell"
+    policy: "DEFAULT_DROP_UNLESS_PIVOTED"
+    purpose: "Must compromise Enterprise/DMZ before reaching OT"

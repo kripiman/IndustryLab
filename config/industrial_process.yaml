@@ -1,0 +1,85 @@
+# Industrial Cyber-Physical Process Parameters & Modbus Address Maps
+
+cooling_loop:
+  name: "Exchanger Cooling Loop (E-101)"
+  description: "Closed-loop heat exchanger cooling heavy industrial milling and chemical reactions"
+  constants:
+    ambient_temp_c: 25.0
+    heat_inflow_nominal_kw: 120.0
+    cooling_capacity_max_kw: 250.0
+    water_volume_liters: 1500.0
+    thermal_mass: 6270.0 # kJ/K
+    critical_temp_high: 85.0 # Celsius - Warning
+    trip_temp_emergency: 95.0 # Celsius - Emergency Trip
+    nominal_setpoint_c: 45.0
+  modbus_mapping:
+    coils:
+      0: "pump_run_cmd"        # 0=OFF, 1=ON (Cooling Pump P-101)
+      1: "emergency_trip_rst"  # 1=Reset safety trip
+      2: "manual_override"     # 1=Enable manual valve control
+      3: "trip_interlock_act"  # 1=Safety trip active (Read-only status)
+    discrete_inputs:
+      0: "flow_switch_ok"      # 1=Coolant flow detected
+      1: "pump_feedback_run"   # 1=Pump auxiliary contact closed
+    input_registers:
+      0: "raw_temp_sensor_adc" # Raw sensor ADC reading
+      1: "inlet_pressure_kpa"  # Primary inlet pressure (kPa)
+    holding_registers:
+      0: "temp_pv_scaled_c10"  # Process Variable: Temp * 10 (e.g. 450 = 45.0 C)
+      1: "valve_position_pct"  # Control Output: Cooling Valve 0-100%
+      2: "temp_sp_scaled_c10"  # Setpoint: Temp * 10 (Default 450 = 45.0 C)
+      3: "kp_gain"             # Proportional gain * 10
+      4: "flow_rate_lpm"       # Flow rate (liters/min)
+      5: "alarm_status_mask"   # Bitmask: 0x01=High, 0x02=HighHigh, 0x04=LossOfFlow
+
+slurry_conveyor:
+  name: "Mineral Ore Slurry Conveyor & SAG Mill (CV-201 & ML-201)"
+  description: "High-tonnage ore transport belt feeding Primary SAG Grinding Mill"
+  constants:
+    nominal_speed_mps: 3.5      # meters / sec
+    max_speed_mps: 5.0
+    nominal_feed_tph: 1200.0    # tons per hour
+    nominal_motor_current_a: 380.0
+    max_vibration_mms: 7.5      # mm/s RMS (ISO 10816-3 Alarm threshold)
+    trip_vibration_mms: 11.0    # mm/s RMS Emergency Trip
+    min_lube_pressure_bar: 2.2  # Minimum bearing lubrication pressure
+  modbus_mapping:
+    coils:
+      0: "conveyor_run_cmd"    # 1=Start belt motor
+      1: "sag_mill_run_cmd"    # 1=Start SAG mill motor
+      2: "chute_spray_act"     # 1=Dust suppression spray ON
+      3: "interlock_bypass"    # 1=Bypass vibration/lube interlock (Dangerous!)
+    discrete_inputs:
+      0: "pull_cord_estop_ok"  # 1=Emergency pull cord healthy
+      1: "belt_alignment_ok"   # 1=Belt tracking normal
+    input_registers:
+      0: "bearing_temp_c"      # Mill main trunnion bearing temperature
+      1: "motor_power_kw"      # Motor electrical power
+    holding_registers:
+      0: "belt_speed_pct"      # Conveyor speed 0-100%
+      1: "feed_rate_tph"       # Feed rate in tons per hour
+      2: "vibration_rms_x10"   # Vibration RMS in mm/s * 10 (e.g. 35 = 3.5 mm/s)
+      3: "lube_pressure_x10"   # Lube oil pressure in bar * 10 (e.g. 32 = 3.2 bar)
+      4: "motor_current_amps"  # Motor load current
+      5: "alarm_word"          # 0x01=Overload, 0x02=HighVib, 0x04=LowLube, 0x08=EStop
+
+buffer_tank:
+  name: "Chemical Buffer / Water Storage Tank (TK-301)"
+  description: "Surge and buffer tank with inlet pump and gravity outflow"
+  constants:
+    height_m: 5.0
+    cross_section_area_m2: 4.0
+    max_inflow_rate_lps: 25.0
+    outflow_coefficient: 0.65
+    low_level_alarm_m: 0.8
+    high_level_alarm_m: 4.2
+    overflow_level_m: 4.8
+  modbus_mapping:
+    coils:
+      0: "inlet_pump_cmd"
+      1: "discharge_valve_cmd"
+    holding_registers:
+      0: "tank_level_mm"       # Level in mm (0 to 5000)
+      1: "tank_level_pct"      # Level in percentage (0 to 100)
+      2: "inflow_rate_x10"     # Inflow in L/s * 10
+      3: "outflow_rate_x10"    # Outflow in L/s * 10

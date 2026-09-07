@@ -1,0 +1,22 @@
+# ==============================================================================
+# IndustryLab — IEC 62443 Industrial Intrusion Detection Rules (Snort / Suricata)
+# Class: Protocol-Command-Decode & Bad-Traffic
+# ==============================================================================
+
+# 1. Alert on any Modbus TCP traffic originating from Enterprise Zone (10.10.1.0/24) towards OT (10.10.4.0/24)
+alert tcp 10.10.1.0/24 any -> 10.10.4.0/24 502 (msg:"[IEC62443-VIOLATION] Enterprise-to-OT Direct Modbus Access Attempt"; flow:to_server,established; sid:1000001; rev:1; priority:1;)
+
+# 2. Alert on Unauthorized Modbus FC 05 (Write Single Coil) originating outside Engineering Workstation
+alert tcp !10.10.3.50 any -> 10.10.4.0/24 502 (msg:"[OT-ALERT] Unauthorized Modbus FC 05 Write Coil"; flow:to_server,established; content:"|00 00|"; offset:2; depth:2; byte_test:1,=,5,7; sid:1000002; rev:1; priority:2;)
+
+# 3. Alert on Unauthorized Modbus FC 06 (Write Single Register)
+alert tcp !10.10.3.50 any -> 10.10.4.0/24 502 (msg:"[OT-ALERT] Unauthorized Modbus FC 06 Write Holding Register"; flow:to_server,established; content:"|00 00|"; offset:2; depth:2; byte_test:1,=,6,7; sid:1000003; rev:1; priority:2;)
+
+# 4. Alert on Unauthorized Modbus FC 16 (Write Multiple Registers)
+alert tcp !10.10.3.50 any -> 10.10.4.0/24 502 (msg:"[OT-ALERT] Unauthorized Modbus FC 16 Write Multiple Registers"; flow:to_server,established; content:"|00 00|"; offset:2; depth:2; byte_test:1,=,16,7; sid:1000004; rev:1; priority:2;)
+
+# 5. Alert on Modbus Diagnostics (FC 08) or Restart
+alert tcp any any -> 10.10.4.0/24 502 (msg:"[OT-ALERT] Modbus Diagnostics / Restart FC 08 Received"; flow:to_server,established; content:"|00 00|"; offset:2; depth:2; byte_test:1,=,8,7; sid:1000005; rev:1; priority:1;)
+
+# 6. Alert on Attacker Subnet (10.10.99.0/24) probe to OT Cell
+alert ip 10.10.99.0/24 any -> 10.10.4.0/24 any (msg:"[CRITICAL-BREACH] Direct Packet from Threat Zone to OT Field Zone Detected"; sid:1000006; rev:1; priority:1;)

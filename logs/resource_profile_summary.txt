@@ -1,11 +1,15 @@
 ================================================================================
   IndustryLab — Real Hardware Resource Footprint (Measured Benchmark)
 ================================================================================
-Timestamp: 2026-09-07 13:17:08
-Active Components Tracked: 0
-Total Real Resident Memory (RSS): 0.0 MB
+Timestamp: 2026-09-07 23:19:50
+Active Components Tracked: 5
+Total Real Resident Memory (RSS): 97.47 MB
 
 Component Breakdown:
 PID      RSS (MB)     CPU %    Command
-  (No active daemon processes found running. Baseline idle footprint ~15-30 MB per component)
+33606    3.81         0.0      bash -c  ./industrylab.sh down >/dev/null 2>&1 || true pytho
+33680    22.16        4.8      python3 plc/openplc_runtime.py --process cooling --port 1502
+33681    22.28        4.8      python3 physical/bridge_modbus.py --cooling-port 1502 --dt 0
+33682    24.52        5.5      python3 scada/historian_service.py --cooling-port 1502 --por
+33683    24.7         4.8      python3 scada/hmi_web_server.py --port 8085
 ================================================================================

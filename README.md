@@ -138,31 +138,11 @@ curl http://localhost:8080/api/snapshot
 ./industrylab.sh down
 ```
 
----
 
-## 🎯 5. ¿Cómo presentar esto en tu Portafolio o CV?
-
-Incorporar este proyecto en tu perfil profesional demuestra ante consultoras de ciberseguridad, empresas de energía, minería y manufactura crítica habilidades altamente cotizadas y escasas en el mercado:
-
-### Viñetas listas para tu Currículum Vitae (CV)
-- **Ingeniero de Ciberseguridad OT / Desarrollador Cyber Range**:
-  - *Diseñó e implementó un Cyber Range Ciberfísico Industrial (OT/ICS) ligero (<250 MB RAM) en contenedores Docker y Python bajo el estándar internacional **IEC 62443** y el **Modelo Purdue (Niveles 0 a 5)**.*
-  - *Programó autómatas en **Structured Text (IEC 61131-3)** sobre OpenPLC integrando lazo cerrado de control con simulación física continua (**ICSSIM**) de intercambiadores de calor y molinos SAG.*
-  - *Orquestó escenarios de fallas en cascada (*domino effects*) con **HELICS 3.x**, conectando la manipulación de registros Modbus con disparos por sobrecarga térmica en la subestación eléctrica.*
-  - *Desarrolló un proxy de inspección profunda de paquetes (**Modbus DPI**) para mitigar ataques de inyección de comandos no autorizados (`FC 05/06`), y una suite de pruebas con **23 tests automatizados en Pytest**.*
-
-### Puntos clave para entrevistas técnicas (Método STAR)
-1. **Prioridades OT vs IT**: Explica que en OT prima la **seguridad física de las personas, los equipos y la continuidad operacional (SRI: Safety, Reliability, Integrity)** por sobre la confidencialidad.
-2. **Segmentación Efectiva**: Describe cómo implementaste la regla `FORWARD DROP` para evitar que un ransomware en la red corporativa alcance la celda de control.
-3. **Consecuencias Ciberfísicas**: Enfatiza que tus scripts ofensivos no solo envían paquetes a un puerto, sino que alteran variables de estado físico (temperatura, presión, vibración) provocando disparos reales de protecciones eléctricas.
-
-Consulta la guía completa en [docs/PORTFOLIO_CV_GUIDE.md](docs/PORTFOLIO_CV_GUIDE.md).
-
----
 
 ## 📚 Documentación Técnica Detallada
 
 - 🏗️ **[Arquitectura y Modelo Matemático Ciberfísico](docs/ARCHITECTURE.md)**: Diagramas, modelos de ecuaciones diferenciales y mapas de memoria Modbus.
 - 🛠️ **[Manual de Operaciones y Despliegue](docs/OPERATIONS.md)**: Instrucciones detalladas para Docker, Kathará y Mininet.
 - 📋 **[Matriz de Cumplimiento IEC 62443](docs/IEC62443_COMPLIANCE.md)**: Mapeo de Requisitos Fundamentales (FR1 a FR7).
-- 💼 **[Guía de Portafolio y Empleabilidad OT/ICS](docs/PORTFOLIO_CV_GUIDE.md)**: Guía estratégica para destacar en procesos de selección.
+

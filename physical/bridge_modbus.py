@@ -131,9 +131,13 @@ class HilModbusBridge:
             except Exception as e:
                 logger.debug(f"Modbus write conveyor error: {e}")
 
+        # --- 3. Buffer Tank Dynamics (SEC-15) ---
+        tank_state = self.tank_plant.step(self.dt, pump_in_cmd=pump_run, valve_out_cmd=(valve_pct > 0.0))
+
         return {
             "cooling": cooling_state,
             "conveyor": conveyor_state,
+            "tank": tank_state,
             "timestamp": time.time()
         }
 

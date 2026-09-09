@@ -35,13 +35,23 @@ class CoolingControlLogic:
         self.modbus.set_holding_register(1, 35)  # VALVE_POSITION_PCT = 35%
         self.modbus.set_holding_register(2, 450) # TEMP_SP_SCALED_C10 = 45.0 C (addr 2)
         self.modbus.set_holding_register(3, 20)  # KP_GAIN_X10 = 20 (addr 3)
-        self.modbus.set_holding_register(0, 450) # TEMP_PV_SCALED_C10 (addr 0)
+        self.modbus.set_input_register(0, 450)   # TEMP_PV_SCALED_C10 (%IW0 - Read-Only)
+        self.modbus.set_holding_register(0, 450) # Mirror to HR0 for legacy telemetry/bus
         self.modbus.set_discrete_input(0, True)  # FLOW_SWITCH_OK = 1
         self.modbus.set_discrete_input(1, True)  # PUMP_FEEDBACK_RUN = 1
+        self._last_hr_temp = 450
 
     def scan_cycle(self):
-        # 1. Read Inputs
-        temp_pv = self.modbus.get_holding_register(0) # Process Temp * 10
+        # 1. Read Inputs from Input Register (%IW0) with sync from virtual field bus
+        ir_pv = self.modbus.get_input_register(0)
+        hr_pv = self.modbus.get_holding_register(0)
+        if hr_pv != self._last_hr_temp:
+            temp_pv = hr_pv
+            self.modbus.set_input_register(0, hr_pv)
+            self._last_hr_temp = hr_pv
+        else:
+            temp_pv = ir_pv
+
         manual_override = self.modbus.get_coil(2)      # MANUAL_OVERRIDE
         emergency_rst = self.modbus.get_coil(1)        # EMERGENCY_TRIP_RST
         trip_active = self.modbus.get_coil(3)          # TRIP_INTERLOCK_ACT
@@ -62,10 +72,13 @@ class CoolingControlLogic:
             self.modbus.set_coil(3, False)
             self.modbus.set_coil(1, False)
 
-        # 2. Safety Interlock: Emergency Over-Temperature Trip (>= 95.0 C)
+        # 2. Safety Interlock: Emergency Over-Temperature Trip (>= 95.0 C) or Latched Trip
         if temp_pv >= 950:
+            trip_active = True
             self.modbus.set_coil(3, True)            # TRIP_INTERLOCK_ACT := TRUE
-            self.modbus.set_coil(0, True)            # PUMP_RUN_CMD := TRUE
+
+        if trip_active:
+            self.modbus.set_coil(0, True)            # PUMP_RUN_CMD := TRUE (Emergency lock)
             self.modbus.set_holding_register(1, 100) # VALVE_POSITION_PCT := 100%
             self.modbus.set_holding_register(5, 0x0003) # HighTemp + CritTrip Alarm
             return
@@ -99,17 +112,38 @@ class ConveyorControlLogic:
         self.modbus.set_coil(1, True)            # SAG_MILL_RUN_CMD
         self.modbus.set_holding_register(0, 70)  # BELT_SPEED_PCT = 70%
         self.modbus.set_holding_register(1, 840) # FEED_RATE_TPH = 840 TPH
-        self.modbus.set_holding_register(2, 32)  # VIBRATION_RMS_X10 = 3.2 mm/s
-        self.modbus.set_holding_register(3, 35)  # LUBE_PRESSURE_X10 = 3.5 bar
+        self.modbus.set_input_register(0, 32)    # VIBRATION_RMS_X10 (%IW0 - Read-Only)
+        self.modbus.set_input_register(1, 35)    # LUBE_PRESSURE_X10 (%IW1 - Read-Only)
+        self.modbus.set_holding_register(2, 32)  # VIBRATION_RMS_X10 = 3.2 mm/s (legacy HR2)
+        self.modbus.set_holding_register(3, 35)  # LUBE_PRESSURE_X10 = 3.5 bar (legacy HR3)
         self.modbus.set_holding_register(4, 380) # MOTOR_CURRENT_AMPS = 380 A
+        self._last_hr_vib = 32
+        self._last_hr_lube = 35
 
     def scan_cycle(self):
         estop_ok = self.modbus.get_discrete_input(0)
         align_ok = self.modbus.get_discrete_input(1)
         conv_run = self.modbus.get_coil(0)
         interlock_bypass = self.modbus.get_coil(3)
-        vib_rms = self.modbus.get_holding_register(2)
-        lube_press = self.modbus.get_holding_register(3)
+
+        # Read sensor inputs from Input Registers (%IW) with fallback sync
+        ir_vib = self.modbus.get_input_register(0)
+        hr_vib = self.modbus.get_holding_register(2)
+        if hr_vib != self._last_hr_vib:
+            vib_rms = hr_vib
+            self.modbus.set_input_register(0, hr_vib)
+            self._last_hr_vib = hr_vib
+        else:
+            vib_rms = ir_vib
+
+        ir_lube = self.modbus.get_input_register(1)
+        hr_lube = self.modbus.get_holding_register(3)
+        if hr_lube != self._last_hr_lube:
+            lube_press = hr_lube
+            self.modbus.set_input_register(1, hr_lube)
+            self._last_hr_lube = hr_lube
+        else:
+            lube_press = ir_lube
 
         # Interlock 1: E-Stop & Alignment
         if not estop_ok or not align_ok:
@@ -148,7 +182,10 @@ class ConveyorControlLogic:
             self.modbus.set_coil(2, False)
             self.modbus.set_holding_register(1, 0)
 
-        self.modbus.set_holding_register(5, 0x0000)
+        if interlock_bypass:
+            self.modbus.set_holding_register(5, 0x0010) # Warning: Interlock Bypass Active
+        else:
+            self.modbus.set_holding_register(5, 0x0000)
 
 
 class OpenPLCRuntime:

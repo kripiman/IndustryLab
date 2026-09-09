@@ -54,6 +54,7 @@ def test_firewall_script_syntax_and_conduits():
 
     # Verify key iptables security directives
     assert "iptables -P FORWARD DROP" in content
+    assert "iptables -P INPUT DROP" in content
     assert "iptables -A FORWARD -s 10.10.1.0/24 -d 10.10.4.0/24 -j IEC62443_VIOLATION" in content
     assert "iptables -A FORWARD -s 10.10.2.20 -d 10.10.4.0/24 -p tcp --dport 502" in content
     assert "iptables -A FORWARD -s 10.10.3.50 -d 10.10.4.0/24 -p tcp --dport 502" in content

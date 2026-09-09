@@ -37,6 +37,11 @@ def test_fed_plc_attack_override():
     out_attack = plc.execute_logic(temp_c=45.0, cyber_attack_override=True, attack_valve_val=0.0)
     assert out_attack["pump_cmd"] is False, "Pump must be stopped under attack"
     assert out_attack["valve_pct"] == 0.0, "Valve must be shut under attack"
+    assert out_attack["emergency_trip"] is False, "No trip at 45 C"
+
+    # Cyber attack override with overtemperature trip (P0-04 / SEC-04)
+    out_attack_crit = plc.execute_logic(temp_c=96.0, cyber_attack_override=True, attack_valve_val=0.0)
+    assert out_attack_crit["emergency_trip"] is True, "Emergency trip must assert even under attack"
 
 
 def test_co_simulation_end_to_end_cascade():

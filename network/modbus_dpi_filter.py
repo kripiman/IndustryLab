@@ -12,6 +12,7 @@ import sys
 import socket
 import select
 import logging
+import threading
 import argparse
 from pathlib import Path
 
@@ -60,7 +61,11 @@ def parse_modbus_pdu(data: bytes):
         return None
     tx_id = int.from_bytes(data[0:2], byteorder='big')
     proto_id = int.from_bytes(data[2:4], byteorder='big')
+    if proto_id != 0:
+        return None
     length = int.from_bytes(data[4:6], byteorder='big')
+    if length < 2:
+        return None
     unit_id = data[6]
     fc = data[7]
     return {
@@ -150,6 +155,7 @@ class ModbusDpiProxy:
 
         sockets = [client_sock, target_sock]
         buffer_size = 4096
+        client_buffer = bytearray()
 
         try:
             while self.running:
@@ -163,11 +169,25 @@ class ModbusDpiProxy:
                         return
 
                     if s is client_sock:
-                        allow, exc_resp = self.inspect_request(client_ip, data)
-                        if allow:
-                            target_sock.sendall(data)
-                        elif exc_resp:
-                            client_sock.sendall(exc_resp)
+                        client_buffer.extend(data)
+                        while len(client_buffer) >= 6:
+                            proto_id = int.from_bytes(client_buffer[2:4], "big")
+                            length = int.from_bytes(client_buffer[4:6], "big")
+                            if proto_id != 0 or length < 2:
+                                logger.warning(f"Invalid MBAP from {client_ip} (proto={proto_id}, len={length}). Dropping buffer.")
+                                client_buffer.clear()
+                                break
+                            frame_len = 6 + length
+                            if len(client_buffer) < frame_len:
+                                break
+                            frame = bytes(client_buffer[:frame_len])
+                            client_buffer = client_buffer[frame_len:]
+
+                            allow, exc_resp = self.inspect_request(client_ip, frame)
+                            if allow:
+                                target_sock.sendall(frame)
+                            elif exc_resp:
+                                client_sock.sendall(exc_resp)
                     else:
                         # Forward upstream PLC response back to client
                         client_sock.sendall(data)
@@ -191,7 +211,12 @@ class ModbusDpiProxy:
                 r, _, _ = select.select([server], [], [], 0.5)
                 if r:
                     client_sock, client_addr = server.accept()
-                    self.handle_client(client_sock, client_addr)
+                    client_thread = threading.Thread(
+                        target=self.handle_client,
+                        args=(client_sock, client_addr),
+                        daemon=True
+                    )
+                    client_thread.start()
         except KeyboardInterrupt:
             logger.info("Shutting down DPI Proxy...")
         finally:

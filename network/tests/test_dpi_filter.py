@@ -50,3 +50,15 @@ def test_dpi_proxy_authorization_logic():
     allow_write_auth, exc_auth = proxy.inspect_request("10.10.3.50", write_req)
     assert allow_write_auth is True, "Authorized write from EWS must pass inspection"
     assert exc_auth is None
+
+
+def test_dpi_proxy_rejects_invalid_proto_id():
+    # Frame with proto_id=1 instead of 0 (invalid Modbus TCP frame)
+    frame_bad_proto = bytes([0x00, 0x01, 0x00, 0x01, 0x00, 0x06, 0x01, 0x03, 0x00, 0x00, 0x00, 0x02])
+    pdu = parse_modbus_pdu(frame_bad_proto)
+    assert pdu is None, "Non-zero protocol ID must be rejected by parser"
+
+    proxy = ModbusDpiProxy()
+    allow, exc = proxy.inspect_request("10.10.3.50", frame_bad_proto)
+    assert allow is False
+    assert exc is None

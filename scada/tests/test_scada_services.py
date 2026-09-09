@@ -59,3 +59,43 @@ def test_scada_historian_rest_api():
             assert isinstance(data, list)
     finally:
         historian.stop()
+
+
+def test_hmi_server_and_reverse_proxy():
+    import threading
+    from http.server import HTTPServer
+    from scada.hmi_web_server import HmiRequestHandler, HTML_PAGE
+
+    hist_port = 18081
+    hmi_port = 18086
+
+    historian = ScadaHistorian(api_host="127.0.0.1", api_port=hist_port)
+    historian.start(background=True)
+    time.sleep(0.2)
+
+    hmi_server = HTTPServer(("127.0.0.1", hmi_port), HmiRequestHandler)
+    hmi_server.historian_url = f"http://127.0.0.1:{hist_port}"
+    hmi_thread = threading.Thread(target=hmi_server.serve_forever, daemon=True)
+    hmi_thread.start()
+    time.sleep(0.2)
+
+    try:
+        # 1. Test HTML Dashboard Serving
+        with urllib.request.urlopen(f"http://127.0.0.1:{hmi_port}/") as res:
+            assert res.status == 200
+            html = res.read().decode('utf-8')
+            assert "LOSS OF VIEW" in html
+            assert "COMM FAULT" in html
+            assert "sys-status-badge" in html
+
+        # 2. Test Reverse Proxy to Historian
+        with urllib.request.urlopen(f"http://127.0.0.1:{hmi_port}/api/snapshot") as res:
+            assert res.status == 200
+            data = json.loads(res.read().decode('utf-8'))
+            assert "telemetry" in data
+            assert "cooling" in data["telemetry"]
+    finally:
+        hmi_server.shutdown()
+        hmi_server.server_close()
+        historian.stop()
+

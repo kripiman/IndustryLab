@@ -47,18 +47,21 @@ class FedPLC:
         helics.helicsFederateEnterExecutingMode(self.fed)
 
     def execute_logic(self, temp_c: float, cyber_attack_override: bool = False, attack_valve_val: float = 0.0) -> dict:
-        # Check if under cyber-physical override
+        # Safety interlock always monitors process limit regardless of override
+        if temp_c >= 95.0:
+            self.emergency_trip = True
+        else:
+            self.emergency_trip = False
+
+        # Evaluate actuator outputs
         if cyber_attack_override:
             self.valve_pct = attack_valve_val
             self.pump_cmd = False # Attack shuts off coolant pump!
         else:
-            # Emergency trip threshold at 95.0 C
-            if temp_c >= 95.0:
-                self.emergency_trip = True
+            if self.emergency_trip:
                 self.valve_pct = 100.0
                 self.pump_cmd = True
             else:
-                self.emergency_trip = False
                 error = temp_c - self.setpoint
                 calc = 35.0 + error * 2.0
                 self.valve_pct = max(5.0, min(100.0, calc))

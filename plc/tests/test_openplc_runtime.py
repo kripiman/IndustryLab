@@ -69,3 +69,29 @@ def test_conveyor_control_scan_and_interlocks():
     modbus.set_coil(0, True)
     logic.scan_cycle()
     assert modbus.get_coil(0) is True, "Bypass permits running despite high vibration"
+    assert modbus.get_holding_register(5) == 0x0010, "Bypass active alarm must be set"
+
+
+def test_cooling_emergency_lock_retained_on_temp_drop():
+    """SEC-05: Verifies emergency cooling remains locked if temperature drops below 95 C without reset."""
+    modbus = ModbusPlcServer(host="127.0.0.1", port=15025)
+    logic = CoolingControlLogic(modbus)
+
+    # 1. Trigger Emergency Trip (96.0 C)
+    modbus.set_input_register(0, 960)
+    logic.scan_cycle()
+    assert modbus.get_coil(3) is True
+    assert modbus.get_holding_register(1) == 100
+    assert modbus.get_coil(0) is True
+
+    # 2. Temperature drops to 90.0 C without reset pulse -> MUST REMAIN LOCKED
+    modbus.set_input_register(0, 900)
+    # Attacker attempts to force valve closed and stop pump via Modbus
+    modbus.set_holding_register(1, 0)
+    modbus.set_coil(0, False)
+    logic.scan_cycle()
+
+    assert modbus.get_coil(3) is True, "Trip must remain active"
+    assert modbus.get_holding_register(1) == 100, "Emergency valve must be held at 100%"
+    assert modbus.get_coil(0) is True, "Pump must be held running"
+    assert modbus.get_holding_register(5) == 0x0003, "Alarm status must remain HighTemp + CritTrip"

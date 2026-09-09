@@ -61,3 +61,23 @@ def test_attack_setpoint_tamper():
         assert server.get_holding_register(3) == 90
     finally:
         server.stop()
+
+
+def test_attack_dos_flooding_and_latency_measurement():
+    from attacker.attack_dos import execute_dos, measure_probe_latency
+    port = 15034
+    server = ModbusPlcServer(host="127.0.0.1", port=port)
+    server.start(background=True)
+    time.sleep(0.15)
+
+    try:
+        # Check probe latency before DoS
+        baseline = measure_probe_latency("127.0.0.1", port)
+        assert baseline >= 0.0, "Legitimate probe must succeed on running server"
+
+        # Execute DoS attack
+        success = execute_dos("127.0.0.1", port, num_packets=20, delay_s=0.001, verify_latency=True)
+        assert success is True
+    finally:
+        server.stop()
+

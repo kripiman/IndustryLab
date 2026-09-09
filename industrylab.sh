@@ -103,12 +103,23 @@ cmd_down() {
         docker compose -f network/docker-compose.yml down --remove-orphans >/dev/null 2>&1 || true
     fi
 
-    # 2. Stop PID processes
+    # 2. Stop PID processes with active wait and SIGKILL escalation (P2-01 / SEC-14)
     for pidfile in runfiles/*.pid; do
         if [[ -f "${pidfile}" ]]; then
-            pid=$(cat "${pidfile}")
-            if kill -0 "${pid}" 2>/dev/null; then
+            pid=$(cat "${pidfile}" 2>/dev/null || true)
+            if [[ -n "${pid}" ]] && kill -0 "${pid}" 2>/dev/null; then
                 kill "${pid}" 2>/dev/null || true
+                # Active wait up to 3 seconds (30 * 0.1s)
+                waited=0
+                while kill -0 "${pid}" 2>/dev/null && [[ $waited -lt 30 ]]; do
+                    sleep 0.1
+                    waited=$((waited + 1))
+                done
+                # Escalate to SIGKILL if process didn't terminate
+                if kill -0 "${pid}" 2>/dev/null; then
+                    kill -9 "${pid}" 2>/dev/null || true
+                    sleep 0.1
+                fi
             fi
             rm -f "${pidfile}"
         fi

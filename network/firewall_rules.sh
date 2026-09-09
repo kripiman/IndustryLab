@@ -37,9 +37,16 @@ iptables -t mangle -F
 iptables -t mangle -X
 
 # 3. Default Policies: Zero-Trust by default
-iptables -P INPUT ACCEPT
+iptables -P INPUT DROP
 iptables -P FORWARD DROP
 iptables -P OUTPUT ACCEPT
+
+# 3.1 Gateway Host Protection (SEC-09)
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -s 10.10.3.50 -p icmp -j ACCEPT
+iptables -A INPUT -s 10.10.2.10 -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -s 10.10.3.50 -p tcp --dport 22 -j ACCEPT
 
 # 4. Create custom logging chain for IEC 62443 security violations
 iptables -N IEC62443_VIOLATION 2>/dev/null || true
@@ -53,7 +60,8 @@ iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 # 6. Conduit C-02: Explicit Drop and Log of any direct IT (10.10.1.0/24) to OT (10.10.4.0/24)
 iptables -A FORWARD -s 10.10.1.0/24 -d 10.10.4.0/24 -j IEC62443_VIOLATION
 
-# 7. Conduit C-01: Enterprise to IDMZ (Jump Host & HMI Web Dashboard)
+# 7. Conduit C-01: Enterprise to IDMZ (Jump Host & HMI Web Dashboard, plus diagnostic ICMP)
+iptables -A FORWARD -s 10.10.1.0/24 -d 10.10.2.0/24 -p icmp --icmp-type echo-request -j ACCEPT
 iptables -A FORWARD -s 10.10.1.0/24 -d 10.10.2.10 -p tcp --dport 22 -m state --state NEW -j ACCEPT
 iptables -A FORWARD -s 10.10.1.0/24 -d 10.10.2.30 -p tcp --dport 8085 -m state --state NEW -j ACCEPT
 iptables -A FORWARD -s 10.10.1.0/24 -d 10.10.2.20 -p tcp --dport 8080 -m state --state NEW -j ACCEPT

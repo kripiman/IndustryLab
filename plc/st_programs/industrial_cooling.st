@@ -53,6 +53,11 @@ PROGRAM Cooling_Exchanger_Control
     VALVE_POSITION_PCT := 100;  (* 100% full open emergency cooling *)
     ALARM_STATUS_WORD := 16#0003; (* HighTemp + CritTrip *)
     RETURN;
+  ELSIF TRIP_INTERLOCK_ACT THEN
+    PUMP_RUN_CMD := TRUE;       (* Keep emergency cooling locked *)
+    VALVE_POSITION_PCT := 100;
+    ALARM_STATUS_WORD := 16#0003;
+    RETURN;
   END_IF;
 
   (* Normal Automatic Control Logic *)

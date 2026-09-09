@@ -54,7 +54,7 @@ HTML_PAGE = """<!DOCTYPE html>
     <h1>🏭 IndustryLab — HMI Industrial Central (IEC 62443 PERA)</h1>
     <div>
       <span class="badge">ZONA: IDMZ (Nivel 3.5)</span>
-      <span class="badge" style="background:#15803d;">SISTEMA: EN LÍNEA</span>
+      <span id="sys-status-badge" class="badge" style="background:#15803d;">SISTEMA: EN LÍNEA</span>
     </div>
   </header>
 
@@ -113,37 +113,68 @@ HTML_PAGE = """<!DOCTYPE html>
   <script>
     async function updateDashboard() {
       try {
-        const res = await fetch('http://' + window.location.hostname + ':8080/api/snapshot');
-        if (!res.ok) return;
+        const res = await fetch('/api/snapshot');
+        if (!res.ok) {
+          showLossOfView('PÉRDIDA DE VISIÓN / COMUNICACIÓN CAÍDA');
+          return;
+        }
         const data = await res.json();
-        const c = data.telemetry.cooling;
-        const cv = data.telemetry.conveyor;
+        const c = data.telemetry ? data.telemetry.cooling : null;
+        const cv = data.telemetry ? data.telemetry.conveyor : null;
+
+        const coolingOnline = c && c.online !== false;
+        const conveyorOnline = cv && cv.online !== false;
+
+        const badge = document.getElementById('sys-status-badge');
+        if (badge) {
+          if (coolingOnline && conveyorOnline) {
+            badge.style.background = '#15803d';
+            badge.innerText = 'SISTEMA: EN LÍNEA';
+          } else {
+            badge.style.background = '#ef4444';
+            badge.innerText = 'PÉRDIDA DE VISIÓN / COMUNICACIÓN CAÍDA';
+          }
+        }
 
         // Update Cooling
-        document.getElementById('val-temp').innerText = c.temp_c.toFixed(1) + ' °C';
-        document.getElementById('svg-temp').innerText = c.temp_c.toFixed(1) + ' °C';
-        document.getElementById('val-valve').innerText = c.valve_pct + ' %';
-        document.getElementById('val-flow').innerText = c.flow_lpm.toFixed(0) + ' L/min';
-        document.getElementById('val-pump').innerText = c.pump_run ? 'MARCHA' : 'DETENIDA';
-        document.getElementById('val-pump').className = 'metric-val ' + (c.pump_run ? 'val-normal' : 'val-crit');
-
-        if (c.temp_c >= 95.0) {
+        if (!coolingOnline) {
+          document.getElementById('val-temp').innerText = 'COMM FAULT';
           document.getElementById('val-temp').className = 'metric-val val-crit';
+          document.getElementById('svg-temp').innerText = 'LOSS OF VIEW';
           document.getElementById('svg-temp').setAttribute('fill', '#ef4444');
-        } else if (c.temp_c >= 85.0) {
-          document.getElementById('val-temp').className = 'metric-val val-warn';
-          document.getElementById('svg-temp').setAttribute('fill', '#f59e0b');
         } else {
-          document.getElementById('val-temp').className = 'metric-val val-normal';
-          document.getElementById('svg-temp').setAttribute('fill', '#10b981');
+          document.getElementById('val-temp').innerText = c.temp_c.toFixed(1) + ' °C';
+          document.getElementById('svg-temp').innerText = c.temp_c.toFixed(1) + ' °C';
+          document.getElementById('val-valve').innerText = c.valve_pct + ' %';
+          document.getElementById('val-flow').innerText = c.flow_lpm.toFixed(0) + ' L/min';
+          document.getElementById('val-pump').innerText = c.pump_run ? 'MARCHA' : 'DETENIDA';
+          document.getElementById('val-pump').className = 'metric-val ' + (c.pump_run ? 'val-normal' : 'val-crit');
+
+          if (c.temp_c >= 95.0) {
+            document.getElementById('val-temp').className = 'metric-val val-crit';
+            document.getElementById('svg-temp').setAttribute('fill', '#ef4444');
+          } else if (c.temp_c >= 85.0) {
+            document.getElementById('val-temp').className = 'metric-val val-warn';
+            document.getElementById('svg-temp').setAttribute('fill', '#f59e0b');
+          } else {
+            document.getElementById('val-temp').className = 'metric-val val-normal';
+            document.getElementById('svg-temp').setAttribute('fill', '#10b981');
+          }
         }
 
         // Update Conveyor
-        document.getElementById('val-speed').innerText = cv.belt_speed_pct + ' %';
-        document.getElementById('val-feed').innerText = cv.feed_rate_tph + ' TPH';
-        document.getElementById('val-vib').innerText = cv.vibration_mms.toFixed(1) + ' mm/s';
-        document.getElementById('svg-vib').innerText = cv.vibration_mms.toFixed(1) + ' mm/s';
-        document.getElementById('val-lube').innerText = cv.lube_pressure_bar.toFixed(1) + ' bar';
+        if (!conveyorOnline) {
+          document.getElementById('val-vib').innerText = 'COMM FAULT';
+          document.getElementById('val-vib').className = 'metric-val val-crit';
+          document.getElementById('svg-vib').innerText = 'LOSS OF VIEW';
+          document.getElementById('svg-vib').setAttribute('fill', '#ef4444');
+        } else {
+          document.getElementById('val-speed').innerText = cv.belt_speed_pct + ' %';
+          document.getElementById('val-feed').innerText = cv.feed_rate_tph + ' TPH';
+          document.getElementById('val-vib').innerText = cv.vibration_mms.toFixed(1) + ' mm/s';
+          document.getElementById('svg-vib').innerText = cv.vibration_mms.toFixed(1) + ' mm/s';
+          document.getElementById('val-lube').innerText = cv.lube_pressure_bar.toFixed(1) + ' bar';
+        }
 
         // Update Alarms
         const alarmContainer = document.getElementById('alarms-container');
@@ -156,8 +187,24 @@ HTML_PAGE = """<!DOCTYPE html>
           `).join('');
         }
       } catch (err) {
-        console.log('Polling Historian API...', err);
+        showLossOfView('PÉRDIDA DE VISIÓN / COMUNICACIÓN CAÍDA');
       }
+    }
+
+    function showLossOfView(msg) {
+      const badge = document.getElementById('sys-status-badge');
+      if (badge) {
+        badge.style.background = '#ef4444';
+        badge.innerText = msg;
+      }
+      document.getElementById('val-temp').innerText = 'COMM FAULT';
+      document.getElementById('val-temp').className = 'metric-val val-crit';
+      document.getElementById('svg-temp').innerText = 'LOSS OF VIEW';
+      document.getElementById('svg-temp').setAttribute('fill', '#ef4444');
+      document.getElementById('val-vib').innerText = 'COMM FAULT';
+      document.getElementById('val-vib').className = 'metric-val val-crit';
+      document.getElementById('svg-vib').innerText = 'LOSS OF VIEW';
+      document.getElementById('svg-vib').setAttribute('fill', '#ef4444');
     }
     setInterval(updateDashboard, 1500);
     updateDashboard();
@@ -172,19 +219,47 @@ class HmiRequestHandler(BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        if self.path == "/" or self.path == "/index.html":
+        if self.path in ("/", "/index.html"):
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(HTML_PAGE.encode('utf-8'))
+        elif self.path.startswith("/api/"):
+            # Reverse proxy to Historian (P2-03 / SEC-10)
+            historian_url = getattr(self.server, "historian_url", "http://127.0.0.1:8080").rstrip("/")
+            target_url = f"{historian_url}{self.path}"
+            try:
+                from urllib.request import Request
+                req = Request(target_url)
+                with urlopen(req, timeout=3.0) as resp:
+                    data = resp.read()
+                    self.send_response(resp.status)
+                    self.send_header("Content-Type", resp.headers.get("Content-Type", "application/json"))
+                    self.send_header("Content-Length", str(len(data)))
+                    self.end_headers()
+                    self.wfile.write(data)
+            except Exception as e:
+                err_data = json.dumps({
+                    "error": f"Historian gateway unreachable: {e}",
+                    "online": False
+                }).encode("utf-8")
+                self.send_response(502)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(err_data)))
+                self.end_headers()
+                self.wfile.write(err_data)
         else:
             self.send_response(404)
             self.end_headers()
 
 
-def run_hmi(host="0.0.0.0", port=8085):
+def run_hmi(host="0.0.0.0", port=8085, historian_url="http://127.0.0.1:8080"):
+    import os
+    if not historian_url:
+        historian_url = os.environ.get("HISTORIAN_URL", "http://127.0.0.1:8080")
     server = HTTPServer((host, port), HmiRequestHandler)
-    logger.info(f"Airgapped HMI Dashboard active at http://{host}:{port}")
+    server.historian_url = historian_url.rstrip("/")
+    logger.info(f"Airgapped HMI Dashboard active at http://{host}:{port} (proxying to {server.historian_url})")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -193,13 +268,15 @@ def run_hmi(host="0.0.0.0", port=8085):
 
 
 def main():
+    import os
     parser = argparse.ArgumentParser(description="Airgapped Industrial Process HMI Dashboard")
     parser.add_argument("--host", default="0.0.0.0", help="HTTP bind host")
     parser.add_argument("--port", type=int, default=8085, help="HTTP bind port")
+    parser.add_argument("--historian-url", default=os.environ.get("HISTORIAN_URL", "http://127.0.0.1:8080"), help="Upstream Historian URL")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    run_hmi(host=args.host, port=args.port)
+    run_hmi(host=args.host, port=args.port, historian_url=args.historian_url)
 
 
 if __name__ == "__main__":

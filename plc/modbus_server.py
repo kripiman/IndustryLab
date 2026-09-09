@@ -36,29 +36,56 @@ except ImportError:
         StartTcpServer = None
 
 
+if ModbusSequentialDataBlock:
+    class ThreadSafeDataBlock(ModbusSequentialDataBlock):
+        """Thread-safe ModbusSequentialDataBlock sharing server lock to prevent race conditions (SEC-11)."""
+        def __init__(self, lock, address, values):
+            self.lock = lock
+            super().__init__(address, values)
+
+        def getValues(self, address, count=1):
+            with self.lock:
+                return super().getValues(address, count)
+
+        def setValues(self, address, values):
+            with self.lock:
+                return super().setValues(address, values)
+
+        def validate(self, address, count=1):
+            with self.lock:
+                return super().validate(address, count)
+else:
+    ThreadSafeDataBlock = None
+
+
 class ModbusPlcServer:
     def __init__(self, host="0.0.0.0", port=502, num_coils=32, num_discrete=32, num_holding=32, num_inputs=32):
         self.host = host
         self.port = port
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.server_thread = None
         self.server = None
         self.running = False
 
-        # Initialize data blocks with zeroes
-        self.coils_block = ModbusSequentialDataBlock(0, [0] * num_coils)
-        self.discrete_block = ModbusSequentialDataBlock(0, [0] * num_discrete)
-        self.holding_block = ModbusSequentialDataBlock(0, [0] * num_holding)
-        self.input_block = ModbusSequentialDataBlock(0, [0] * num_inputs)
+        # Initialize thread-safe data blocks with zeroes sharing server lock (SEC-11)
+        BlockClass = ThreadSafeDataBlock if ThreadSafeDataBlock else ModbusSequentialDataBlock
+        self.coils_block = BlockClass(self.lock, 0, [0] * num_coils) if ThreadSafeDataBlock else None
+        self.discrete_block = BlockClass(self.lock, 0, [0] * num_discrete) if ThreadSafeDataBlock else None
+        self.holding_block = BlockClass(self.lock, 0, [0] * num_holding) if ThreadSafeDataBlock else None
+        self.input_block = BlockClass(self.lock, 0, [0] * num_inputs) if ThreadSafeDataBlock else None
 
-        self.slave_context = ModbusSlaveContext(
-            di=self.discrete_block,
-            co=self.coils_block,
-            hr=self.holding_block,
-            ir=self.input_block,
-            zero_mode=True
-        )
-        self.context = ModbusServerContext(slaves=self.slave_context, single=True)
+        if ModbusSlaveContext and BlockClass:
+            self.slave_context = ModbusSlaveContext(
+                di=self.discrete_block,
+                co=self.coils_block,
+                hr=self.holding_block,
+                ir=self.input_block,
+                zero_mode=True
+            )
+            self.context = ModbusServerContext(slaves=self.slave_context, single=True)
+        else:
+            self.slave_context = None
+            self.context = None
 
     def get_coil(self, address: int) -> bool:
         with self.lock:

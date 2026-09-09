@@ -22,3 +22,11 @@ runfiles/*.pid
 # OS generated
 .DS_Store
 Thumbs.db
+
+# Graphify temporary runtime & cache
+graphify-out/.graphify_python
+graphify-out/*.sig
+graphify-out/2026-*/
+graphify-out/cache/ast/v*/
+graphify-out/cache/semantic/
+

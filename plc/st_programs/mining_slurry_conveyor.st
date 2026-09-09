@@ -65,5 +65,9 @@ PROGRAM Slurry_Conveyor_SAG_Control
     FEED_RATE_TPH := 0;
   END_IF;
 
-  ALARM_WORD := 16#0000; (* All nominal *)
+  IF INTERLOCK_BYPASS THEN
+    ALARM_WORD := 16#0010; (* Warning: Interlock Bypass Active *)
+  ELSE
+    ALARM_WORD := 16#0000; (* All nominal *)
+  END_IF;
 END_PROGRAM
